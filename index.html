@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domaine Agrumia — Tableau de bord quotidien</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Hanken+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --terra:#DE4B26;--espresso:#3A170C;--cream:#F7EDE7;--orange:#F69122;
+    --bg:#F7EDE7;--card:#FFFFFF;--text:#3A170C;--muted:#9A8478;
+    --line:rgba(58,23,12,.12);--line-soft:rgba(58,23,12,.07);
+    --ok:#5F7A52;--warn:#F69122;--late:#C4351C;
+    --ok-bg:rgba(95,122,82,.10);--warn-bg:rgba(246,145,34,.12);--late-bg:rgba(196,53,28,.10);--terra-bg:rgba(222,75,38,.08);
+    --shadow:0 1px 2px rgba(58,23,12,.04), 0 8px 24px -12px rgba(58,23,12,.10);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:'Hanken Grotesk',sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:60px}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E")}
+  .wrap{max-width:1240px;margin:0 auto;padding:40px 40px 0;position:relative;z-index:1}
+  .serif{font-family:'Cormorant Garamond',serif}
+  .eyebrow{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--terra);font-weight:600}
+  .sec-eyebrow{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--muted);font-size:15px}
+  h2.sec{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:26px;color:var(--espresso);letter-spacing:.2px}
+  .citrus-wm{position:absolute;pointer-events:none;color:var(--orange)}
+  header.top{position:relative;overflow:hidden;border-bottom:1px solid var(--line);padding-bottom:30px;margin-bottom:32px}
+  .top .citrus-wm{top:-58px;right:-30px;width:260px;height:140px;opacity:.10;transform:rotate(8deg)}
+  .top-row{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:20px}
+  .brand .eyebrow{margin-bottom:9px}
+  .brand h1{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:46px;line-height:.95;color:var(--espresso);letter-spacing:-.5px}
+  .brand h1 em{font-style:italic;color:var(--terra)}
+  .brand .place{color:var(--muted);font-size:12.5px;margin-top:8px;letter-spacing:.02em}
+  .greet{text-align:right}
+  .greet .hi{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:var(--espresso)}
+  .greet .date{color:var(--muted);font-size:12.5px;margin-top:3px}
+  .maquette{display:inline-block;margin-top:10px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:4px 11px}
+  .gates{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line-soft);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:28px}
+  .gate{background:var(--card);padding:18px 22px;display:flex;align-items:center;gap:16px}
+  .gate .num{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:44px;line-height:.8;color:var(--terra)}
+  .gate .num.soft{color:var(--muted)}
+  .gate .meta .lab{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  .gate .meta .val{font-size:13px;color:var(--espresso);font-weight:500}
+  .gate .meta .sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:40px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:16px 18px;box-shadow:var(--shadow)}
+  .stat .k{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .stat .v{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:34px;line-height:1.1;margin-top:6px}
+  .stat .v small{font-size:14px;color:var(--muted);font-family:'Hanken Grotesk';font-weight:400}
+  .stat .tag{font-size:11px;margin-top:2px;color:var(--muted)}
+  .stat.red .v{color:var(--late)}.stat.amber .v{color:var(--warn)}.stat.terra .v{color:var(--terra)}.stat.ok .v{color:var(--ok)}
+  section.block{margin-bottom:42px;position:relative}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
+  .sec-head .line{flex:1;height:1px;background:var(--line)}
+  .sec-note{font-size:11px;color:var(--muted)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow)}
+  .card-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .card-title h3{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .count-chip{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--terra);line-height:1}
+  .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .g2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+  .item{display:flex;gap:11px;padding:11px 0;border-top:1px solid var(--line-soft)}
+  .item:first-of-type{border-top:none}
+  .dot{width:7px;height:7px;border-radius:50%;margin-top:6px;flex:none;background:var(--muted)}
+  .dot.late{background:var(--late)}.dot.warn{background:var(--warn)}.dot.ok{background:var(--ok)}.dot.terra{background:var(--terra)}
+  .item .body{flex:1}
+  .item .t{font-size:13.5px;color:var(--espresso);font-weight:500;line-height:1.35}
+  .item .s{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .pill{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.04em;padding:3px 9px;border-radius:20px;white-space:nowrap}
+  .pill.late{background:var(--late-bg);color:var(--late)}.pill.warn{background:var(--warn-bg);color:var(--warn)}
+  .pill.ok{background:var(--ok-bg);color:var(--ok)}.pill.terra{background:var(--terra-bg);color:var(--terra)}.pill.muted{background:rgba(58,23,12,.06);color:var(--muted)}
+  .alert{display:flex;gap:14px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--muted);border-radius:12px;padding:15px 18px;box-shadow:var(--shadow)}
+  .alert+.alert{margin-top:12px}
+  .alert.late{border-left-color:var(--late)}.alert.warn{border-left-color:var(--warn)}
+  .alert .ic{width:34px;height:34px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center}
+  .alert.late .ic{background:var(--late-bg)}.alert.warn .ic{background:var(--warn-bg)}
+  .alert .ic svg{width:17px;height:17px}.alert.late .ic svg{stroke:var(--late)}.alert.warn .ic svg{stroke:var(--warn)}
+  .alert .at{font-size:13.5px;font-weight:600;color:var(--espresso)}
+  .alert .ad{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.45}
+  .alert .ad b{color:var(--espresso);font-weight:600}
+  .dept{display:grid;grid-template-columns:1.1fr 150px 1.4fr 110px;gap:18px;align-items:center;padding:15px 20px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+  .dept+.dept{margin-top:10px}
+  .dept .name{font-size:14px;font-weight:600;color:var(--espresso)}
+  .dept .name span{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+  .bar{height:6px;border-radius:6px;background:rgba(58,23,12,.08);overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:6px}
+  .bar i.ok{background:var(--ok)}.bar i.warn{background:var(--warn)}.bar i.late{background:var(--late)}.bar i.muted{background:var(--muted)}
+  .dept .pct{font-size:11px;color:var(--muted);margin-top:5px}
+  .dept .next{font-size:12.5px;color:var(--espresso)}
+  .dept .next span{color:var(--muted);font-size:11.5px}
+  .dept .track{text-align:right}
+  .mile{display:flex;gap:16px;padding:13px 0;border-top:1px solid var(--line-soft)}
+  .mile:first-child{border-top:none}
+  .mile .when{width:78px;flex:none;text-align:center}
+  .mile .when .d{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:500;color:var(--terra);line-height:1}
+  .mile .when .m{font-size:10px;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+  .mile .vl{width:1px;background:var(--line);flex:none}
+  .mile .mb{flex:1}
+  .mile .mt{font-size:13.5px;font-weight:500;color:var(--espresso)}
+  .mile .mo{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .fin-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px;flex-wrap:wrap;gap:12px}
+  .fin-big{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:500;color:var(--espresso);line-height:1}
+  .fin-big small{font-size:14px;color:var(--muted);font-family:'Hanken Grotesk';font-weight:400}
+  .fin-note{background:var(--warn-bg);border-radius:9px;padding:11px 14px;font-size:12px;color:var(--espresso);line-height:1.45;margin-bottom:14px}
+  .fin-note b{color:var(--late)}
+  .fin-sub{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px}
+  .fin-cell{border:1px solid var(--line-soft);border-radius:10px;padding:13px 15px}
+  .fin-cell .k{font-size:10px;letter-spacing:.10em;text-transform:uppercase;color:var(--muted)}
+  .fin-cell .v{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;margin-top:4px;color:var(--espresso)}
+  .supp .row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid var(--line-soft);font-size:12.5px}
+  .supp .row:first-child{border-top:none}
+  .supp .row .n{color:var(--espresso);font-weight:500}
+  .supp .row .loc{color:var(--muted);font-size:11px;font-weight:400;margin-left:8px}
+  .eod{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:stretch}
+  .moved .m-line{display:flex;gap:10px;align-items:center;padding:9px 0;font-size:12.5px;color:var(--espresso);border-top:1px solid var(--line-soft)}
+  .moved .m-line:first-of-type{border-top:none}
+  .moved .m-line .chk{width:16px;height:16px;border-radius:50%;background:var(--ok-bg);display:flex;align-items:center;justify-content:center;flex:none}
+  .moved .m-line .chk svg{width:10px;height:10px;stroke:var(--ok)}
+  .moved .m-line .dt{color:var(--muted);font-size:11px;margin-left:auto;flex:none}
+  .actions{display:flex;flex-direction:column;gap:11px;justify-content:center}
+  .btn{display:flex;align-items:center;justify-content:center;gap:9px;padding:14px 18px;border-radius:11px;font-family:'Hanken Grotesk';font-size:13.5px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:transform .12s ease,box-shadow .15s ease,opacity .15s}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--terra);color:#fff;box-shadow:0 6px 16px -8px rgba(222,75,38,.7)}
+  .btn.primary:hover{box-shadow:0 10px 22px -8px rgba(222,75,38,.8)}
+  .btn.ghost{background:var(--card);color:var(--espresso);border-color:var(--line)}
+  .btn.ghost:hover{background:#fff;opacity:.85}
+  .btn svg{width:16px;height:16px}
+  footer{border-top:1px solid var(--line);margin-top:14px;padding-top:22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+  footer .l{font-size:11px;color:var(--muted);line-height:1.7}
+  footer .r{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:var(--terra)}
+  @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .anim{animation:up .55s ease both}
+  .d1{animation-delay:.05s}.d2{animation-delay:.12s}.d3{animation-delay:.19s}.d4{animation-delay:.26s}
+  @media(max-width:1080px){.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}.gates{grid-template-columns:1fr}.strip{grid-template-columns:1fr 1fr}.dept{grid-template-columns:1fr;gap:10px}.dept .track{text-align:left}.eod{grid-template-columns:1fr}.wrap{padding:28px 20px 0}.top .citrus-wm{display:none}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="citrus" viewBox="0 0 120 64">
+    <path d="M6 60 A54 54 0 0 1 114 60" fill="none" stroke="currentColor" stroke-width="3"/>
+    <path d="M15 60 A45 45 0 0 1 105 60" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <g stroke="currentColor" stroke-width="1.5">
+      <line x1="60" y1="60" x2="60" y2="15"/><line x1="60" y1="60" x2="29" y2="27"/><line x1="60" y1="60" x2="91" y2="27"/><line x1="60" y1="60" x2="17" y2="45"/><line x1="60" y1="60" x2="103" y2="45"/>
+    </g>
+  </symbol>
+</svg>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header class="top anim">
+    <svg class="citrus-wm" aria-hidden="true"><use href="#citrus"/></svg>
+    <div class="top-row">
+      <div class="brand">
+        <div class="eyebrow">Pilotage quotidien</div>
+        <h1>Domaine <em>Agrumia</em></h1>
+        <div class="place">Khelidia · Tunisie — Tableau de bord d'Elyssa</div>
+      </div>
+      <div class="greet">
+        <div class="hi">Bonjour Elyssa</div>
+        <div class="date" id="today">—</div>
+        <div class="maquette">Données réelles (Drive) · budget à compléter</div>
+      </div>
+    </div>
+    <div class="gates">
+      <div class="gate">
+        <div class="num" id="chantier-day">—</div>
+        <div class="meta"><div class="lab">Chantier Dar Saad</div><div class="val">En cours</div><div class="sub">démarré le 15 avril 2026</div></div>
+      </div>
+      <div class="gate">
+        <div class="num soft">?</div>
+        <div class="meta"><div class="lab">Ouverture cible</div><div class="val">À confirmer</div><div class="sub">date à valider avec Lilia</div></div>
+      </div>
+      <div class="gate">
+        <div class="num soft" style="font-size:30px">10h</div>
+        <div class="meta"><div class="lab">Réunion Lilia</div><div class="val">Mardi · hebdomadaire</div><div class="sub">cadence à confirmer</div></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HEALTH STRIP -->
+  <div class="strip">
+    <div class="stat terra anim d1"><div class="k">Devis à approuver</div><div class="v">4</div><div class="tag">électrique · ferronnerie · robinetterie · Sabri</div></div>
+    <div class="stat amber anim d2"><div class="k">Factures à valider</div><div class="v">4</div><div class="tag">dont Abdennadher (bloque livraison)</div></div>
+    <div class="stat red anim d3"><div class="k">Devis en attente</div><div class="v">9</div><div class="tag">à recevoir des prestataires</div></div>
+    <div class="stat ok anim d4"><div class="k">Budget projet</div><div class="v">≈800<small> k TND</small></div><div class="tag">à confirmer avec Lilia</div></div>
+  </div>
+
+  <!-- 1. À FAIRE AUJOURD'HUI -->
+  <section class="block">
+    <div class="sec-head"><h2 class="sec">À faire aujourd'hui</h2><span class="sec-eyebrow">la première vue du matin</span><div class="line"></div><span class="sec-note">ce qui dépend de moi · ce que j'attends · ce qu'il faut à Lilia</span></div>
+    <div class="g3">
+      <div class="card anim d1">
+        <div class="card-title"><h3>Mes actions — juin</h3><span class="count-chip">5</span></div>
+        <div class="item"><span class="dot terra"></span><div class="body"><div class="t">Rectifier le devis Smart Elec</div><div class="s">fournitures électriques · relancé par email</div></div></div>
+        <div class="item"><span class="dot terra"></span><div class="body"><div class="t">Relancer SOPAL — robinetterie</div><div class="s">sécuriser le stock dès réception du devis</div></div></div>
+        <div class="item"><span class="dot"></span><div class="body"><div class="t">Obtenir les montants Sabri</div><div class="s">dépose (17/04) + pré-cadres (03/05)</div></div></div>
+        <div class="item"><span class="dot"></span><div class="body"><div class="t">Liste meubles + linge — 2ᵉ maison</div><div class="s">après tri et fumigation</div></div></div>
+        <div class="item"><span class="dot"></span><div class="body"><div class="t">Proposer des dispos — réunion Jérôme</div><div class="s">menu &amp; restaurant · fin juin</div></div></div>
+      </div>
+      <div class="card anim d2">
+        <div class="card-title"><h3>J'attends quelqu'un</h3><span class="count-chip">5</span></div>
+        <div class="item"><span class="dot warn"></span><div class="body"><div class="t">Devis robinetterie</div><div class="s">SOPAL</div></div><span class="pill warn">en attente</span></div>
+        <div class="item"><span class="dot warn"></span><div class="body"><div class="t">Devis Idéal Sanitaire</div><div class="s">Yosra · SDB / baignoire</div></div><span class="pill warn">en attente</span></div>
+        <div class="item"><span class="dot warn"></span><div class="body"><div class="t">Décision ferronnerie / aluminium</div><div class="s">Lilia · Ezzedine — verrière + fenêtres</div></div></div>
+        <div class="item"><span class="dot warn"></span><div class="body"><div class="t">Nouvelles fenêtres bois — Sabri ?</div><div class="s">en attente de Lilia / Sami</div></div></div>
+        <div class="item"><span class="dot"></span><div class="body"><div class="t">Contrat + plans Wellness</div><div class="s">Bayram · revient avec le contrat</div></div></div>
+      </div>
+      <div class="card anim d3">
+        <div class="card-title"><h3>En attente de Lilia</h3><span class="count-chip">7</span></div>
+        <div class="item"><span class="dot terra"></span><div class="body"><div class="t">Approuver 4 devis</div><div class="s">électrique · ferronnerie · robinetterie · Sabri</div></div></div>
+        <div class="item"><span class="dot late"></span><div class="body"><div class="t">Payer Abdennadher Ceramic</div><div class="s">débloque la livraison</div></div></div>
+        <div class="item"><span class="dot terra"></span><div class="body"><div class="t">Valider facture Emna (50%)</div><div class="s">finaliser le logo</div></div></div>
+        <div class="item"><span class="dot terra"></span><div class="body"><div class="t">Valider 1ʳᵉ tranche photographe</div><div class="s">livraison contenus mi-juin</div></div></div>
+        <div class="item"><span class="dot terra"></span><div class="body"><div class="t">Rembourser Sami (espèces)</div><div class="s">≈ 1 474 TTC · via Kamel</div></div></div>
+        <div class="item"><span class="dot warn"></span><div class="body"><div class="t">Confirmer le budget total</div><div class="s">≈ 800 000 TND ?</div></div></div>
+        <div class="item"><span class="dot warn"></span><div class="body"><div class="t">Protocole de délégation + réunion hebdo</div><div class="s">seuils d'approbation des devis</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. ALERTES & RISQUES -->
+  <section class="block">
+    <div class="sec-head"><h2 class="sec">Alertes &amp; risques</h2><span class="sec-eyebrow">ce qui bloque l'avancement</span><div class="line"></div></div>
+    <div class="anim d1">
+      <div class="alert late">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <div><div class="at">Abdennadher Ceramic — livraison bloquée</div><div class="ad">La facture doit être payée pour débloquer la livraison. <b>Action :</b> validation paiement par Lilia.</div></div>
+      </div>
+      <div class="alert late">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div><div class="at">Hayson Deco — délai 3 à 4 mois</div><div class="ad">Payé à 50 % (Sidi Rezig). <b>Impact :</b> retarde l'aménagement. <b>Action :</b> relancer et arrêter une date ferme.</div></div>
+      </div>
+      <div class="alert warn">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <div><div class="at">Robinetterie — devis SOPAL en attente</div><div class="ad">Sélection faite. <b>Impact :</b> stock à sécuriser vite. <b>Action :</b> relancer SOPAL et commander dès réception.</div></div>
+      </div>
+      <div class="alert warn">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div><div class="at">Ferronnerie — décision en attente</div><div class="ad">Arbitrage ferronnerie vs aluminium (verrière + fenêtres). <b>Impact :</b> bloque les nouvelles fenêtres. <b>Action :</b> retour de Lilia / Ezzedine.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. AVANCEMENT PAR DÉPARTEMENT -->
+  <section class="block">
+    <div class="sec-head"><h2 class="sec">Avancement par département</h2><span class="sec-eyebrow">vers l'ouverture</span><div class="line"></div><span class="sec-note">% indicatifs — à caler</span></div>
+    <div class="anim d1">
+      <div class="dept">
+        <div class="name">Séjourner — Dar Saad<span>Chantier rénovation (depuis le 15 avril)</span></div>
+        <div><div class="bar"><i class="warn" style="width:50%"></i></div><div class="pct">~50 %</div></div>
+        <div class="next">Prochain : pré-cadres fenêtres + revêtement SDB <span>· juin</span></div>
+        <div class="track"><span class="pill warn">actif</span></div>
+      </div>
+      <div class="dept">
+        <div class="name">Se Détendre — Wellness<span>Plans + études bâtiment (Bayram)</span></div>
+        <div><div class="bar"><i class="warn" style="width:20%"></i></div><div class="pct">~20 %</div></div>
+        <div class="next">Prochain : valider les plans + lancer les études <span>· juin</span></div>
+        <div class="track"><span class="pill warn">à lancer</span></div>
+      </div>
+      <div class="dept">
+        <div class="name">Déguster — Restaurant<span>Menu &amp; concept (Jérôme)</span></div>
+        <div><div class="bar"><i class="muted" style="width:12%"></i></div><div class="pct">~12 %</div></div>
+        <div class="next">Prochain : réunion Jérôme — menu <span>· fin juin</span></div>
+        <div class="track"><span class="pill muted">conception</span></div>
+      </div>
+      <div class="dept">
+        <div class="name">Marketing &amp; Identité<span>Logo (Emna) · photos/vidéos</span></div>
+        <div><div class="bar"><i class="ok" style="width:65%"></i></div><div class="pct">~65 %</div></div>
+        <div class="next">Prochain : livraison contenus phase I <span>· mi-juin</span></div>
+        <div class="track"><span class="pill ok">sur la voie</span></div>
+      </div>
+      <div class="dept">
+        <div class="name">Finance<span>Suivi dépenses (partagé Mme Hafsia)</span></div>
+        <div><div class="bar"><i class="warn" style="width:60%"></i></div><div class="pct">à jour · budget ?</div></div>
+        <div class="next">Prochain : confirmer le cadre budgétaire <span>· Lilia</span></div>
+        <div class="track"><span class="pill warn">budget à caler</span></div>
+      </div>
+      <div class="dept">
+        <div class="name">Légal &amp; RH<span>Gîte rural · dénomination · postes</span></div>
+        <div><div class="bar"><i class="muted" style="width:30%"></i></div><div class="pct">~30 %</div></div>
+        <div class="next">Prochain : réunion avocat — dossier gîte rural <span>· juin</span></div>
+        <div class="track"><span class="pill muted">en cours</span></div>
+      </div>
+      <div class="dept">
+        <div class="name">Digital — Site &amp; domaines<span>agrumia.com / .tn réservés · site = Rached</span></div>
+        <div><div class="bar"><i class="muted" style="width:40%"></i></div><div class="pct">suivi séparé</div></div>
+        <div class="next">Référence : plan Implémentation <span>· Rached</span></div>
+        <div class="track"><span class="pill muted">externe</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 + 5 : MILESTONES + FINANCE -->
+  <section class="block">
+    <div class="g2">
+      <div class="card anim d1">
+        <div class="card-title"><h3>Prochains jalons — juin</h3></div>
+        <div class="mile"><div class="when"><div class="d">mi-juin</div><div class="m">Juin</div></div><div class="vl"></div><div class="mb"><div class="mt">Livraison contenus photo / vidéo — phase I</div><div class="mo">photographe · site web + premiers reels</div></div><span class="pill ok">planifié</span></div>
+        <div class="mile"><div class="when"><div class="d">fin juin</div><div class="m">Juin</div></div><div class="vl"></div><div class="mb"><div class="mt">Réunion Jérôme — menu &amp; restaurant</div><div class="mo">Elyssa · 1ʳᵉ présentation</div></div><span class="pill ok">à caler</span></div>
+        <div class="mile"><div class="when"><div class="d">juin</div><div class="m">2026</div></div><div class="vl"></div><div class="mb"><div class="mt">Valider plans Wellness + études bâtiment</div><div class="mo">Bayram · Lilia · Khadija · Elyssa</div></div><span class="pill warn">bloquant</span></div>
+        <div class="mile"><div class="when"><div class="d">juin</div><div class="m">2026</div></div><div class="vl"></div><div class="mb"><div class="mt">Visite de Khelidia avec Rached</div><div class="mo">+ Mme Hafsia si possible</div></div><span class="pill ok">à caler</span></div>
+        <div class="mile"><div class="when"><div class="d">juin</div><div class="m">2026</div></div><div class="vl"></div><div class="mb"><div class="mt">Réunion avocat — dossier gîte rural</div><div class="mo">démarrer les procédures</div></div><span class="pill ok">à caler</span></div>
+      </div>
+      <div class="card anim d2">
+        <div class="card-title"><h3>Finance — engagements</h3></div>
+        <div class="fin-top"><div><div style="font-size:10px;letter-spacing:.10em;text-transform:uppercase;color:var(--muted)">Budget total</div><div class="fin-big">≈ 800<small> k TND · à confirmer</small></div></div></div>
+        <div class="fin-note"><b>À compléter :</b> engagé / payé / reste sont dans le Google Sheet « Suivi Investissements » (non lisible ici). Donne-moi les totaux et je les affiche.</div>
+        <div class="fin-sub">
+          <div class="fin-cell"><div class="k">Remb. Sami (espèces)</div><div class="v">≈ 1 474 <span style="font-size:11px;color:var(--muted)">TTC</span></div></div>
+          <div class="fin-cell"><div class="k">Devis en attente</div><div class="v">9</div></div>
+        </div>
+        <div class="supp" style="margin-top:16px">
+          <div class="row"><span class="n">Siwartex · Maison Nelva · Dorémail<span class="loc">soldés</span></span><span class="pill ok">100 %</span></div>
+          <div class="row"><span class="n">Stivel · Texthème · Idéal Sanitaire<span class="loc">livrés</span></span><span class="pill ok">100 %</span></div>
+          <div class="row"><span class="n">Ceram Square<span class="loc">Khelidia</span></span><span class="pill warn">50 %</span></div>
+          <div class="row"><span class="n">Hayson Deco<span class="loc">Sidi Rezig</span></span><span class="pill warn">50 %</span></div>
+          <div class="row"><span class="n">Abdennadher Ceramic<span class="loc">Khelidia</span></span><span class="pill late">paiement en attente</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- END OF DAY -->
+  <section class="block">
+    <div class="sec-head"><h2 class="sec">Fin de journée</h2><span class="sec-eyebrow">ce qui a bougé · préparer demain</span><div class="line"></div></div>
+    <div class="eod anim d1">
+      <div class="card">
+        <div class="card-title"><h3>Ce qui a bougé récemment</h3></div>
+        <div class="moved">
+          <div class="m-line"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Recap juin envoyé à Lilia<span class="dt">03/06</span></div>
+          <div class="m-line"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Domaines agrumia.com / .tn réservés (Imed Web Media)<span class="dt">22/05</span></div>
+          <div class="m-line"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Pré-cadres portes posés (Sabri)<span class="dt">03/05</span></div>
+          <div class="m-line"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Fumigation 2ᵉ maison<span class="dt">17/04</span></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="alert('Maquette — générera le brief imprimable de mardi : devis à approuver, factures à valider, décisions en attente de Lilia.')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Générer le brief de mardi
+        </button>
+        <button class="btn ghost" onclick="alert('Maquette — rechargerait les données depuis Notion / Drive.')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Rafraîchir
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="l">Domaine Agrumia — Khelidia · Tunisie<br>Données : Google Drive (recap juin, suivi rénovation) · budget dans Google Sheets — à compléter</div>
+    <div class="r">Entre les orangers, le temps mûrit.</div>
+  </footer>
+
+</div>
+
+<script>
+  const months=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const days=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+  const now=new Date();
+  document.getElementById('today').textContent =
+    days[now.getDay()].charAt(0).toUpperCase()+days[now.getDay()].slice(1)+' '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+  // days since chantier start (15 April 2026)
+  const start=new Date('2026-04-15T00:00:00'); const n=new Date(); n.setHours(0,0,0,0);
+  const j=Math.max(0,Math.floor((n-start)/86400000));
+  document.getElementById('chantier-day').textContent='J+'+j;
+</script>
+</body>
+</html>
