@@ -108,8 +108,10 @@
   .ph2{display:grid;grid-template-columns:150px repeat(6,1fr) 60px;gap:5px;padding:0 3px 7px;font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:center}
   .ph2 .hn{text-align:left}
   .sr{display:grid;grid-template-columns:150px repeat(6,1fr) 60px;gap:5px;padding:6px 3px;border-top:1px solid var(--line-soft);align-items:stretch}
-  .sn{display:flex;flex-direction:column;justify-content:center}
-  .sn b{font-size:12px;color:var(--espresso);cursor:pointer}.sn b:hover{color:var(--terra)}.sn span{font-size:10px;color:var(--muted)}
+  .sn{display:flex;flex-direction:column;justify-content:center;min-width:0;overflow:hidden}
+  .sn b{font-size:12px;color:var(--espresso);cursor:pointer;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sn b:hover{color:var(--terra)}
+  .sn .loc{font-size:9.5px;color:var(--muted);line-height:1.2}
+  .sn .ct{font-size:9px;color:var(--muted);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:help}
   .st{border-radius:7px;padding:6px 4px;text-align:center;font-size:10px;font-weight:600;min-height:42px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;cursor:pointer;border:1px solid transparent}
   .st:hover{border-color:rgba(58,23,12,.2)}
   .st .sd{font-size:8.5px;opacity:.8;margin-top:2px;font-weight:400}
@@ -119,7 +121,7 @@
   .sr.closed{opacity:.62}
   .hint{font-size:11px;color:var(--muted);margin-top:12px;font-style:italic}
   /* checklists */
-  .clA{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .clA{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
   .clcol{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:16px;box-shadow:var(--shadow)}
   .clcol .clh{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--espresso);display:flex;align-items:center;gap:6px}
   .clcol .clh .cnt{margin-left:auto;font-family:'Cormorant Garamond';font-size:17px;color:var(--terra)}
@@ -354,36 +356,40 @@ const STAGES=[
  {label:'Livré',opts:[{t:'Non',c:'late'},{t:'Oui',c:'ok'}]}
 ];
 let suppliers=[
- {id:uid++,name:'Siwartex',loc:'Sidi Rezig',st:[1,1,1,1,2,1],d:['','','','','','17/03']},
- {id:uid++,name:'Maison Nelva',loc:'Sidi Rezig',st:[1,1,1,1,2,1],d:['','','','','','19/03']},
- {id:uid++,name:'Dorémail',loc:'Khelidia',st:[1,1,1,1,2,1],d:['','','','','','01/04']},
- {id:uid++,name:'Idéal Sanitaire',loc:'Khelidia',st:[1,1,1,1,2,1],d:['','','','','','04/05']},
- {id:uid++,name:'Ceram Square',loc:'Khelidia',st:[1,1,1,1,2,1],d:['','','','','','21/05']},
- {id:uid++,name:'Hayson Deco',loc:'Sidi Rezig',st:[1,1,1,1,2,0],d:['','','','','','prévu sept.']},
- {id:uid++,name:'Abdennadher',loc:'Khelidia',st:[1,1,1,1,1,0],d:['','','','','Lilia','Soukra']},
- {id:uid++,name:'Sélection robinets',loc:'Khelidia',st:[1,1,1,0,0,0],d:['','','','','','']},
- {id:uid++,name:'Smart Elec',loc:'électrique',st:[1,1,0,0,0,0],d:['','','','','','']},
- {id:uid++,name:'Ferronnerie (Ezzedine)',loc:'—',st:[1,1,0,0,0,0],d:['','','','','','']},
- {id:uid++,name:'Robinetterie SOPAL',loc:'—',st:[1,0,0,0,0,0],d:['','relancé','','','','']},
- {id:uid++,name:'Tissus extérieurs (Karim)',loc:'Sidi Rezig',st:[1,0,0,0,0,0],d:['','relancé','','','','']},
- {id:uid++,name:'Menuiserie Sabri',loc:'—',st:[1,0,0,0,0,0],d:['','montants ?','','','','']}
+ {id:uid++,name:'Siwartex',loc:'Sidi Rezig',contact:'',ci:'',st:[1,1,1,1,2,1],d:['','','','','','17/03']},
+ {id:uid++,name:'Maison Nelva',loc:'Sidi Rezig',contact:'',ci:'',st:[1,1,1,1,2,1],d:['','','','','','19/03']},
+ {id:uid++,name:'Dorémail',loc:'Khelidia',contact:'',ci:'',st:[1,1,1,1,2,1],d:['','','','','','01/04']},
+ {id:uid++,name:'Idéal Sanitaire',loc:'Khelidia',contact:'',ci:'',st:[1,1,1,1,2,1],d:['','','','','','04/05']},
+ {id:uid++,name:'Ceram Square',loc:'Khelidia',contact:'réf. Yosra',ci:'',st:[1,1,1,1,2,1],d:['','','','','','21/05']},
+ {id:uid++,name:'Hayson Deco',loc:'Sidi Rezig',contact:'M. Hayson',ci:'+216 71 000 000',st:[1,1,1,1,2,0],d:['','','','','','prévu sept.']},
+ {id:uid++,name:'Abdennadher',loc:'Khelidia',contact:'Sami Abdennadher',ci:'+216 20 123 456',st:[1,1,1,1,1,0],d:['','','','','Lilia','Soukra']},
+ {id:uid++,name:'Sélection robinets',loc:'Khelidia',contact:'',ci:'',st:[1,1,1,0,0,0],d:['','','','','','']},
+ {id:uid++,name:'Smart Elec',loc:'électrique',contact:'Oussema',ci:'oussema@smartelec.tn',st:[1,1,0,0,0,0],d:['','','','','','']},
+ {id:uid++,name:'Ferronnerie (Ezzedine)',loc:'—',contact:'Ezzedine',ci:'+216 22 555 777',st:[1,1,0,0,0,0],d:['','','','','','']},
+ {id:uid++,name:'Robinetterie SOPAL',loc:'—',contact:'',ci:'',st:[1,0,0,0,0,0],d:['','relancé','','','','']},
+ {id:uid++,name:'Tissus extérieurs (Karim)',loc:'Sidi Rezig',contact:'Karim',ci:'+216 98 333 222',st:[1,0,0,0,0,0],d:['','relancé','','','','']},
+ {id:uid++,name:'Menuiserie Sabri',loc:'—',contact:'Sabri',ci:'',st:[1,0,0,0,0,0],d:['','montants ?','','','','']}
 ];
 let supAdd=false;
 const isClosed=s=>s.st[0]===1&&s.st[1]===1&&s.st[2]===1&&s.st[3]===1&&s.st[4]===2&&s.st[5]===1;
 function renderSup(){
   const host=document.getElementById('sup-host');host.innerHTML='';
-  suppliers.forEach(s=>{
-    const row=document.createElement('div');row.className='sr'+(isClosed(s)?' closed':'');
-    let h='<div class="sn"><b onclick="renameSup('+s.id+')" title="Renommer">'+esc(s.name)+'</b><span>'+esc(s.loc)+'</span></div>';
+  suppliers.filter(s=>!isClosed(s)).forEach(s=>{
+    const row=document.createElement('div');row.className='sr';
+    const cc=[s.contact,s.ci].filter(Boolean).join(' · ');
+    const ctLine=cc?'<span class="ct" data-tip="Contact : '+esc(cc)+'">'+esc(cc)+'</span>':'';
+    let h='<div class="sn"><b onclick="renameSup('+s.id+')" title="Renommer">'+esc(s.name)+'</b><span class="loc">'+esc(s.loc)+'</span>'+ctLine+'</div>';
     STAGES.forEach((stg,gi)=>{const o=stg.opts[s.st[gi]];h+='<div class="st '+o.c+'" onclick="cycle('+s.id+','+gi+')"><div>'+o.t+'</div>'+(s.d[gi]?'<div class="sd">'+esc(s.d[gi])+'</div>':'')+'</div>';});
-    h+='<div class="scl">'+(isClosed(s)?'<span class="b">Clôturé</span>':'')+'<button class="iconbtn del" onclick="delSup('+s.id+')" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></div>';
+    h+='<div class="scl"><button class="iconbtn del" onclick="delSup('+s.id+')" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></div>';
     row.innerHTML=h;host.appendChild(row);
   });
   document.getElementById('sup-add-zone').innerHTML='';
-  if(supAdd){const f=document.createElement('div');f.className='iform';f.style.maxWidth='640px';f.style.marginTop='12px';
+  if(supAdd){const f=document.createElement('div');f.className='iform';f.style.maxWidth='780px';f.style.marginTop='12px';
     f.innerHTML='<div style="width:100%;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:1px">Nouveau fournisseur</div>'
-     +'<input id="sf-n" placeholder="Nom du fournisseur" style="flex:2;min-width:170px">'
-     +'<input id="sf-l" placeholder="Lieu / type (ex. Khelidia)" style="flex:1;min-width:120px">'
+     +'<input id="sf-n" placeholder="Nom du fournisseur" style="flex:2;min-width:160px">'
+     +'<input id="sf-l" placeholder="Lieu / type" style="flex:1;min-width:110px">'
+     +'<input id="sf-ct" placeholder="Contact (nom)" style="flex:1;min-width:130px">'
+     +'<input id="sf-ci" placeholder="Tél. ou email" style="flex:1.4;min-width:150px">'
      +'<button class="save" onclick="saveSup()">Ajouter</button>'
      +'<button class="cancel" onclick="supAdd=false;renderSup()">Annuler</button>'
      +'<div style="width:100%;font-size:11px;color:var(--muted);font-style:italic">Le fournisseur démarre à l\'étape 1 (Contacté : Non) — fais-le avancer en cliquant sur les étapes.</div>';
@@ -393,15 +399,16 @@ function cycle(id,gi){const s=suppliers.find(x=>x.id===id);s.st[gi]=(s.st[gi]+1)
 function delSup(id){suppliers=suppliers.filter(x=>x.id!==id);renderSup();renderBuckets();}
 function renameSup(id){const s=suppliers.find(x=>x.id===id);const n=prompt('Nom du fournisseur :',s.name);if(n!==null&&n.trim()){s.name=n.trim();renderSup();renderBuckets();}}
 function openSupAdd(){supAdd=true;renderSup();}
-function saveSup(){const n=document.getElementById('sf-n').value.trim();if(!n)return;suppliers.push({id:uid++,name:n,loc:document.getElementById('sf-l').value.trim()||'—',st:[0,0,0,0,0,0],d:['','','','','','']});supAdd=false;renderSup();renderBuckets();}
+function saveSup(){const n=document.getElementById('sf-n').value.trim();if(!n)return;suppliers.push({id:uid++,name:n,loc:document.getElementById('sf-l').value.trim()||'—',contact:document.getElementById('sf-ct').value.trim(),ci:document.getElementById('sf-ci').value.trim(),st:[0,0,0,0,0,0],d:['','','','','','']});supAdd=false;renderSup();renderBuckets();}
 
 /* ============ 4 · CHECK-LISTS (derived, read-only, tooltips) ============ */
-function supTip(s){let lines=STAGES.map((stg,i)=>'<span class="tline">'+stg.label+' : '+stg.opts[s.st[i]].t+(s.d[i]?' ('+esc(s.d[i])+')':'')+'</span>').join('<br>');return '<b>'+esc(s.name)+'</b> · '+esc(s.loc)+'<br>'+lines;}
+function supTip(s){let lines=STAGES.map((stg,i)=>'<span class="tline">'+stg.label+' : '+stg.opts[s.st[i]].t+(s.d[i]?' ('+esc(s.d[i])+')':'')+'</span>').join('<br>');const cc=[s.contact,s.ci].filter(Boolean).join(' · ');const c=cc?'<br><span class="tline">Contact : '+esc(cc)+'</span>':'';return '<b>'+esc(s.name)+'</b> · '+esc(s.loc)+c+'<br>'+lines;}
 function renderBuckets(){
   const bc=suppliers.filter(s=>s.st[2]===1&&s.st[3]===0);
   const dv=suppliers.filter(s=>s.st[2]===0);
   const pa=suppliers.filter(s=>s.st[4]===1);
-  const lv=suppliers.filter(isClosed);
+  const lv=suppliers.filter(s=>s.st[5]===1&&!isClosed(s));
+  const cl=suppliers.filter(isClosed);
   const col=(dot,title,src,arr)=>{
     let items=arr.length?arr.map(s=>'<div class="cli live" data-tip=\''+supTip(s)+'\'>'+esc(s.name)+'<span>'+esc(s.loc)+'</span></div>').join(''):'<div class="clempty">Rien pour l\'instant</div>';
     return '<div class="clcol"><div class="clh"><span class="dotmark" style="background:'+dot+'"></span>'+title+'<span class="cnt">'+arr.length+'</span></div><div class="cls">'+src+'</div>'+items+'</div>';
@@ -410,7 +417,8 @@ function renderBuckets(){
     col('var(--late)','Devis à valider','étape 3 = attente Lilia',dv)
    +col('var(--late)','BC à préparer','étape 4 = Non',bc)
    +col('var(--late)','Paiements à valider','étape 5 = attente Lilia/Kamel',pa)
-   +col('var(--ok)','Fournitures livrées','dossier clôturé',lv);
+   +col('var(--warn)','Fournitures livrées','livré · reste à finaliser',lv)
+   +col('var(--ok)','Fournisseurs clôturé','livré + payé · retirés du tableau',cl);
 }
 
 renderTodos();renderCal();renderSup();renderBuckets();
