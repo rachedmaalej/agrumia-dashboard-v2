@@ -70,7 +70,7 @@
   .iform .save{background:var(--ok);color:#fff;border:none;border-radius:8px;padding:8px 13px;font-weight:600;font-size:12px;cursor:pointer}
   .iform .cancel{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:8px}
   /* todo grouped */
-  .grp{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--terra);font-weight:700;margin:16px 0 4px;display:flex;align-items:center;gap:8px}
+  .grp{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--terra);font-weight:700;margin:30px 0 9px;display:flex;align-items:center;gap:8px}
   .grp:first-child{margin-top:0}.grp .gl{flex:1;height:1px;background:var(--line-soft)}
   .titem{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line-soft)}
   .titem:last-child{border-bottom:none}
@@ -160,6 +160,27 @@
   /* error toast */
   #toastbar{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(160%);background:var(--late);color:#fff;padding:11px 18px;border-radius:11px;box-shadow:0 12px 34px -8px rgba(196,53,28,.4);font-size:12.5px;z-index:301;opacity:0;visibility:hidden;transition:transform .25s ease,opacity .25s ease,visibility .25s;max-width:90vw;text-align:center}
   #toastbar.show{transform:translateX(-50%) translateY(0);opacity:1;visibility:visible}
+  /* input modal (native <dialog>, replaces prompt) */
+  .imodal{border:none;padding:0;background:transparent;width:min(440px,92vw);max-width:92vw;color:var(--text)}
+  .imodal::backdrop{background:rgba(40,16,8,.42);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+  .imodal-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 24px 20px;box-shadow:0 30px 70px -24px rgba(58,23,12,.5)}
+  .imodal-eyebrow{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--terra);font-weight:600;margin-bottom:7px}
+  .imodal-title{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:23px;color:var(--espresso);line-height:1.15;margin-bottom:16px}
+  .imodal-input{width:100%;font-family:'Hanken Grotesk',sans-serif;font-size:13.5px;line-height:1.55;color:var(--text);background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 13px;resize:vertical}
+  textarea.imodal-input{min-height:84px}
+  .imodal-input:focus{outline:none;border-color:var(--terra);box-shadow:0 0 0 3px rgba(222,75,38,.12)}
+  .imodal-hint{font-size:10.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+  .imodal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+  .imodal-cancel{background:none;border:1px solid var(--line);border-radius:9px;padding:9px 16px;font-family:'Hanken Grotesk';font-weight:600;font-size:12.5px;color:var(--muted);cursor:pointer}
+  .imodal-cancel:hover{color:var(--espresso);border-color:var(--muted)}
+  .imodal-save{background:var(--terra);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-family:'Hanken Grotesk';font-weight:600;font-size:12.5px;cursor:pointer}
+  .imodal-save:hover{opacity:.92}
+  @media(prefers-reduced-motion:no-preference){
+    .imodal[open]{animation:imodalIn .22s cubic-bezier(.2,.8,.25,1)}
+    .imodal[open]::backdrop{animation:imodalBd .22s ease}
+  }
+  @keyframes imodalIn{from{opacity:0;transform:translateY(10px) scale(.975)}to{opacity:1;transform:none}}
+  @keyframes imodalBd{from{opacity:0}to{opacity:1}}
   @media(max-width:1024px){.g2{grid-template-columns:1fr}.gates,.strip{grid-template-columns:1fr 1fr}.clA{grid-template-columns:1fr 1fr}.ph2{display:none}.sr{grid-template-columns:1fr 1fr;gap:6px}.sr .sn,.sr .scl{grid-column:1/-1}.wrap{padding:24px 16px 0}.mpanel{width:100%}}
 </style>
 </head>
@@ -242,6 +263,19 @@
 <div id="undobar"><span class="um"></span><button onclick="doUndo()">Annuler</button></div>
 <div id="toastbar"></div>
 
+<dialog id="imodal" class="imodal" aria-labelledby="imodal-title">
+  <form class="imodal-card" method="dialog">
+    <div class="imodal-eyebrow" id="imodal-eyebrow"></div>
+    <h3 class="imodal-title" id="imodal-title"></h3>
+    <div id="imodal-field"></div>
+    <div class="imodal-hint" id="imodal-hint"></div>
+    <div class="imodal-actions">
+      <button type="button" class="imodal-cancel" id="imodal-cancel">Annuler</button>
+      <button type="submit" class="imodal-save" id="imodal-save">Enregistrer</button>
+    </div>
+  </form>
+</dialog>
+
 <script>
 // ============================================================
 //  CONFIG — fill API_URL after first Apps Script deploy
@@ -312,6 +346,62 @@ function showUndo(msg, fn) {
 }
 function hideUndo() { document.getElementById('undobar').classList.remove('show'); _undoFn = null; }
 async function doUndo() { if (_undoFn) { var fn = _undoFn; hideUndo(); await fn(); } }
+
+// ---- Reusable input modal (native <dialog>; replaces prompt) ----
+// Resolves with the trimmed value, or null if cancelled (Esc / Annuler / click outside).
+function openInputModal(opts) {
+  opts = opts || {};
+  return new Promise(function(resolve) {
+    var dlg    = document.getElementById('imodal');
+    var form   = dlg.querySelector('form');
+    var fieldH = document.getElementById('imodal-field');
+    var cancel = document.getElementById('imodal-cancel');
+    document.getElementById('imodal-eyebrow').textContent = opts.eyebrow || '';
+    document.getElementById('imodal-title').textContent   = opts.title   || '';
+    document.getElementById('imodal-save').textContent    = opts.save    || 'Enregistrer';
+    document.getElementById('imodal-hint').textContent    = opts.hint    || '';
+
+    fieldH.innerHTML = '';
+    var field = document.createElement(opts.multiline ? 'textarea' : 'input');
+    field.className = 'imodal-input';
+    field.setAttribute('autofocus', '');
+    if (opts.multiline) field.rows = 3; else field.type = 'text';
+    field.value = opts.value || '';
+    field.placeholder = opts.placeholder || '';
+    fieldH.appendChild(field);
+
+    var settled = false;
+    function finish(val) {
+      if (settled) return; settled = true;
+      form.removeEventListener('submit', onSubmit);
+      dlg.removeEventListener('cancel', onCancel);
+      dlg.removeEventListener('click', onClick);
+      cancel.removeEventListener('click', onCancelBtn);
+      field.removeEventListener('keydown', onKey);
+      if (dlg.open) dlg.close();
+      resolve(val);
+    }
+    function onSubmit(e)   { e.preventDefault(); finish(field.value.trim()); }
+    function onCancel(e)   { e.preventDefault(); finish(null); }          // Esc
+    function onCancelBtn() { finish(null); }
+    function onClick(e) {                                                 // click outside the card
+      var r = dlg.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) finish(null);
+    }
+    function onKey(e) {
+      if (e.key === 'Enter' && (!opts.multiline || e.ctrlKey || e.metaKey)) { e.preventDefault(); finish(field.value.trim()); }
+    }
+    form.addEventListener('submit', onSubmit);
+    dlg.addEventListener('cancel', onCancel);
+    dlg.addEventListener('click', onClick);
+    cancel.addEventListener('click', onCancelBtn);
+    field.addEventListener('keydown', onKey);
+
+    if (!dlg.open) dlg.showModal();
+    field.focus();
+    if (opts.multiline) { var L = field.value.length; field.setSelectionRange(L, L); } else { field.select(); }
+  });
+}
 
 // ---- Populate from API response ----
 function populateFromApi(data) {
@@ -713,7 +803,14 @@ async function delSup(id) {
 
 async function renameSup(id) {
   var s = suppliers.find(function(x){ return x.id === id; });
-  var n = prompt('Nom du fournisseur :', s.name);
+  var n = await openInputModal({
+    eyebrow:     'Renommer le fournisseur',
+    title:       s.name,
+    value:       s.name,
+    placeholder: 'Nom du fournisseur',
+    multiline:   false,
+    save:        'Renommer'
+  });
   if (n === null || !n.trim()) return;
   var oldName = s.name;
   s.name = n.trim();
@@ -752,10 +849,18 @@ async function saveSup() {
 async function editNote(ev, id, gi) {
   ev.stopPropagation();
   var s  = suppliers.find(function(x){ return x.id === id; });
-  var v  = prompt('Note — ' + STAGES[gi].label + ' · ' + s.name + ' :', s.d[gi] || '');
+  var v  = await openInputModal({
+    eyebrow:     'Note · étape ' + (gi + 1) + ' · ' + STAGES[gi].label,
+    title:       s.name,
+    value:       s.d[gi] || '',
+    placeholder: 'Saisir une note…',
+    multiline:   true,
+    hint:        'Entrée = nouvelle ligne · Ctrl/⌘ + Entrée pour enregistrer · laisser vide pour effacer.',
+    save:        'Enregistrer'
+  });
   if (v === null) return;
   var oldD = s.d.slice();
-  s.d[gi] = v.trim();
+  s.d[gi] = v;
   renderSup(); renderBuckets();
   try { await api.update('supplier', s); }
   catch(e) { showToast('Erreur de sauvegarde'); s.d = oldD; renderSup(); renderBuckets(); }
