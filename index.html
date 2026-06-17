@@ -945,6 +945,7 @@ renderTodos(); renderCal(); renderSup(); renderBuckets();
     populateFromApi(data);
   } catch(e) {
     showToast('Impossible de charger les données — vérifiez la connexion ou l\'URL de l\'API.');
+  } finally {
     btn.classList.remove('spin');
   }
 })();
