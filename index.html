@@ -869,13 +869,13 @@ async function editNote(ev, id, gi) {
 async function reopenSup(id) {
   var s = suppliers.find(function(x){ return x.id === id; });
   if (!s) return;
-  s.st[5] = 1; renderSup(); renderBuckets();
+  s.st[5] = 0; renderSup(); renderBuckets();
   try { await api.update('supplier', s); }
   catch(e) { showToast('Erreur de sauvegarde'); s.st[5] = 2; renderSup(); renderBuckets(); }
-  showUndo('Fournisseur remis au tableau : ' + s.name + ' (Livré)', async function() {
+  showUndo('Fournisseur remis au tableau : ' + s.name, async function() {
     s.st[5] = 2; renderSup(); renderBuckets();
     try { await api.update('supplier', s); }
-    catch(e) { showToast('Erreur de restauration'); s.st[5] = 1; renderSup(); renderBuckets(); }
+    catch(e) { showToast('Erreur de restauration'); s.st[5] = 0; renderSup(); renderBuckets(); }
   });
 }
 
@@ -901,7 +901,7 @@ function renderBuckets() {
     var items = arr.length ? arr.map(function(s) {
       var locS = [s.lieu, s.type].filter(Boolean).join(' · ');
       return reopen
-        ? '<div class="cli live reopenable" data-tip=\''+supTip(s)+'\'><div class="clinfo">'+esc(s.name)+'<span>'+esc(locS)+'</span></div><button class="reopenbtn" onclick="reopenSup('+s.id+')" title="Remettre au tableau (étape Livré)">'+REOPEN_SVG+'</button></div>'
+        ? '<div class="cli live reopenable" data-tip=\''+supTip(s)+'\'><div class="clinfo">'+esc(s.name)+'<span>'+esc(locS)+'</span></div><button class="reopenbtn" onclick="reopenSup('+s.id+')" title="Remettre au tableau (revient à Non)">'+REOPEN_SVG+'</button></div>'
         : '<div class="cli live" data-tip=\''+supTip(s)+'\'>'+esc(s.name)+'<span>'+esc(locS)+'</span></div>';
     }).join('') : '<div class="clempty">Rien pour l\'instant</div>';
     return '<div class="clcol"><div class="clh"><span class="dotmark" style="background:'+dot+'"></span>'+title+'<span class="cnt">'+arr.length+'</span></div><div class="cls">'+src+'</div>'+items+'</div>';
